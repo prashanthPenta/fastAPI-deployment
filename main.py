@@ -1,30 +1,23 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from azure.cosmos import CosmosClient
-import certifi
-import os
+import certifi, os
 
 app = FastAPI()
-container = None  # Declare globally but initialize later
 
-# ✅ Initialize Cosmos client safely at startup
+# connect to Cosmos DB
 def get_container():
     endpoint = os.getenv("COSMOS_ENDPOINT")
     key = os.getenv("COSMOS_KEY")
-    database_name = os.getenv("COSMOS_DATABASE")
+    db = os.getenv("COSMOS_DATABASE")
     container_name = os.getenv("COSMOS_CONTAINER")
 
-    if not all([endpoint, key, database_name, container_name]):
+    if not all([endpoint, key, db, container_name]):
         raise RuntimeError("Missing Cosmos DB environment variables")
 
     client = CosmosClient(endpoint, credential=key, connection_verify=certifi.where())
-    database = client.get_database_client(database_name)
+    database = client.get_database_client(db)
     return database.get_container_client(container_name)
-
-@app.on_event("startup")
-def startup_event():
-    global container
-    container = get_container()
 
 class Account(BaseModel):
     entity_type: str
@@ -35,30 +28,33 @@ class Account(BaseModel):
 
 @app.post("/accounts")
 def create_account(account: Account):
+    container = get_container()
     container.create_item(account.dict())
     return {"message": "Account created successfully"}
 
 @app.get("/accounts")
 def get_accounts():
+    container = get_container()
     query = "SELECT * FROM c"
-    accounts = list(container.query_items(query=query, enable_cross_partition_query=True))
-    return accounts
+    return list(container.query_items(query=query, enable_cross_partition_query=True))
 
 @app.get("/accounts/{account_id}")
 def get_account(account_id: str):
+    container = get_container()
     try:
-        account = container.read_item(item=account_id, partition_key=account_id)
-        return account
+        return container.read_item(item=account_id, partition_key=account_id)
     except Exception:
         raise HTTPException(status_code=404, detail="Account not found")
 
 @app.put("/accounts/{account_id}")
 def update_account(account_id: str, account: Account):
+    container = get_container()
     container.upsert_item(account.dict())
     return {"message": "Account updated successfully"}
 
 @app.delete("/accounts/{account_id}")
 def delete_account(account_id: str):
+    container = get_container()
     try:
         container.delete_item(item=account_id, partition_key=account_id)
         return {"message": "Account deleted successfully"}
