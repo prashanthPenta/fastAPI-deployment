@@ -5,8 +5,7 @@ import certifi
 import os
 from dotenv import load_dotenv
 
-# Load secrets from credentials.env
-load_dotenv("credentials.env")
+
 
 endpoint = os.getenv("COSMOS_ENDPOINT")
 key = os.getenv("COSMOS_KEY")
@@ -58,3 +57,4 @@ def delete_account(account_id: str):
         return {"message": "Account deleted successfully"}
     except Exception:
         raise HTTPException(status_code=404, detail="Account not found")
+
