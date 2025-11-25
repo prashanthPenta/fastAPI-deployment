@@ -1,23 +1,20 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from azure.cosmos import CosmosClient
-import certifi, os
+import certifi
 
 app = FastAPI()
 
-# connect to Cosmos DB
+# Cosmos DB values
+COSMOS_ENDPOINT = "https://<your-account>.documents.azure.com:443/"
+COSMOS_KEY = "nHnpv76wetzKIbKD6aEjS56FlHCMbQHb1CHCKfigMXurlbRMFA0UXoRE9WsxuARHTfrOzkf62tnxACDbMwyfhw=="
+COSMOS_DATABASE = "CDM"
+COSMOS_CONTAINER = "ACCOUNT"
+
 def get_container():
-    endpoint = os.getenv("COSMOS_ENDPOINT")
-    key = os.getenv("COSMOS_KEY")
-    db = os.getenv("COSMOS_DATABASE")
-    container_name = os.getenv("COSMOS_CONTAINER")
-
-    if not all([endpoint, key, db, container_name]):
-        raise RuntimeError("Missing Cosmos DB environment variables")
-
-    client = CosmosClient(endpoint, credential=key, connection_verify=certifi.where())
-    database = client.get_database_client(db)
-    return database.get_container_client(container_name)
+    client = CosmosClient(COSMOS_ENDPOINT, credential=COSMOS_KEY, connection_verify=certifi.where())
+    database = client.get_database_client(COSMOS_DATABASE)
+    return database.get_container_client(COSMOS_CONTAINER)
 
 class Account(BaseModel):
     entity_type: str
