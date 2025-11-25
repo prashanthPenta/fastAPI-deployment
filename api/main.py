@@ -7,7 +7,7 @@ app = FastAPI()
 
 # Cosmos DB values
 COSMOS_ENDPOINT = "https://<your-account>.documents.azure.com:443/"
-COSMOS_KEY = "nHnpv76wetzKIbKD6aEjS56FlHCMbQHb1CHCKfigMXurlbRMFA0UXoRE9WsxuARHTfrOzkf62tnxACDbMwyfhw=="
+COSMOS_KEY = "****"
 COSMOS_DATABASE = "CDM"
 COSMOS_CONTAINER = "ACCOUNT"
 
